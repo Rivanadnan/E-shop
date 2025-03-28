@@ -20,7 +20,6 @@ function Checkout() {
     email: ''
   });
 
-  // Ladda varukorg och kund från localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     const savedCustomer = localStorage.getItem('customer');
@@ -28,7 +27,6 @@ function Checkout() {
     if (savedCustomer) setCustomer(JSON.parse(savedCustomer));
   }, []);
 
-  // Hantera formulärändringar
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCustomer((prev) => ({ ...prev, [name]: value }));
@@ -36,6 +34,30 @@ function Checkout() {
   };
 
   const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+  const handleCheckout = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customer, cart }),
+      });
+
+      const data = await res.json();
+      console.log('Svar från checkout:', data); // 👈 HÄR SER DU SVARET
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Något gick fel vid betalningen.');
+      }
+    } catch (error) {
+      console.error('Checkout-fel:', error);
+      alert('Kunde inte genomföra betalning.');
+    }
+  };
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -69,7 +91,7 @@ function Checkout() {
           </form>
 
           <br />
-          <button onClick={() => alert("Här ska Stripe-betalning ske!")}>
+          <button onClick={handleCheckout}>
             Gå till betalning
           </button>
         </>
