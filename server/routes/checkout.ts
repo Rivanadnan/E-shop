@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import db from '../db';
+import db from '../models/db';
 import Stripe from 'stripe';
 
 const router = Router();
