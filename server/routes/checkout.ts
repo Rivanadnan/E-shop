@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 const router = Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia',
+  apiVersion: '2025-02-24.acacia'
 });
 
 router.post('/', async (req: Request, res: Response) => {
@@ -16,6 +16,7 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   try {
+
     const [existing] = await db.promise().query(
       'SELECT * FROM customers WHERE email = ?',
       [customer.email]
@@ -32,6 +33,7 @@ router.post('/', async (req: Request, res: Response) => {
       );
       customerId = (result as any).insertId;
     }
+
 
     const [orderResult] = await db.promise().query(
       'INSERT INTO orders (customer_id, payment_status, payment_id, order_status) VALUES (?, ?, ?, ?)',
