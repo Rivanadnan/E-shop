@@ -33,11 +33,7 @@ function Checkout() {
     localStorage.setItem('customer', JSON.stringify({ ...customer, [name]: value }));
   };
 
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
-
-
-  
-
+  const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
 
   const handleCheckout = async () => {
     try {
@@ -63,10 +59,12 @@ function Checkout() {
     }
   };
 
+  // 🧹 Uppdaterad clearCart med omstart
   const clearCart = () => {
     localStorage.removeItem('cart');
     setCart([]);
     alert('Varukorgen är nu tömd.');
+    window.location.reload(); // 🔁 detta löser att header & kassa uppdateras
   };
 
   return (
@@ -85,7 +83,7 @@ function Checkout() {
               </li>
             ))}
           </ul>
-          <p><strong>Totalt:</strong> {total} kr</p>
+          <p><strong>Totalt:</strong> {Number.isFinite(total) ? total.toFixed(2) : '0.00'} kr</p>
 
           <h2>Kunduppgifter</h2>
           <form>
