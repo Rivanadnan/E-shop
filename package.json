@@ -14,11 +14,13 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mysql2": "^3.14.0",
-    "react-router-dom": "^7.4.0"
+    "react-router-dom": "^7.4.0",
+    "stripe": "^17.7.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/node": "^22.13.14",
+    "@types/stripe": "^8.0.416",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   }

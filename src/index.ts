@@ -2,6 +2,7 @@ import express from 'express';
 import productsRouter from './routes/products';
 import db from './db';
 import cors from 'cors';
+import checkoutRouter from './routes/checkout';
 
 
 
@@ -10,6 +11,7 @@ const port = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/checkout', checkoutRouter);
 
 
 app.use('/products', productsRouter);

@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Checkout from './Checkout';
+import Confirmation from './Confirmation';
+
 
 type Product = {
   id: number;
@@ -55,6 +57,7 @@ function App() {
           }
         />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/confirmation" element={<Confirmation />} />
       </Routes>
     </Router>
   );
