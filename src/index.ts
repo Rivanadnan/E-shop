@@ -4,13 +4,14 @@ import db from './db';
 import productsRouter from './routes/products';
 import checkoutRouter from './routes/checkout';
 import ordersRouter from './routes/orders';
+
 const app = express();
 const port = 3000;
 
 app.use(cors());
 app.use(express.json());
 
-
+// 👇 Här används routerfilerna korrekt
 app.use('/products', productsRouter);
 app.use('/checkout', checkoutRouter);
 app.use('/orders', ordersRouter);
@@ -23,7 +24,7 @@ app.listen(port, () => {
   console.log(`✅ Server is running on http://localhost:${port}`);
 });
 
-
+// ✅ Testa DB-anslutning
 db.query('SELECT 1 + 1 AS result', (err, results) => {
   if (err) {
     console.error('❌ Database connection failed:', err);
