@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import Checkout from './Checkout';
 import Confirmation from './Confirmation';
 
-
 type Product = {
   id: number;
   name: string;
@@ -21,6 +20,12 @@ function App() {
       .then((res) => res.json())
       .then((data) => setProducts(data))
       .catch((err) => console.error('Fel vid hämtning:', err));
+
+    
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
   }, []);
 
   const addToCart = (product: Product) => {

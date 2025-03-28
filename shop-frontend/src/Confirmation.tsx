@@ -1,68 +1,92 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+
+type Customer = {
+  name: string;
+  email: string;
+};
+
+type Product = {
+  name: string;
+  price: number | string;
+};
 
 type Order = {
   id: number;
-  payment_status: string;
+  payment_id: string;
   order_status: string;
-  total: number;
-  customer: {
-    name: string;
-    email: string;
-  };
-  order_items: {
-    product: {
-      name: string;
-      price: number;
-    };
-    quantity: number;
-  }[];
+  payment_status: string;
+  created_at: string;
+  customer: Customer;
+  items: Product[];
 };
 
 function Confirmation() {
-  const [params] = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    const session_id = params.get('session_id');
-    if (!session_id) return;
+    const query = new URLSearchParams(window.location.search);
+    const sessionId = query.get('session_id');
 
-    fetch(`http://localhost:3000/orders/payment/${session_id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setOrder(data);
-        localStorage.removeItem('cart');
-        localStorage.removeItem('customer');
-      })
-      .catch((err) => {
-        console.error('Kunde inte hämta order:', err);
-      });
-  }, [params]);
+    if (sessionId) {
+      fetch(`http://localhost:3000/orders/payment/${sessionId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setOrder(data);
 
-  if (!order) return <p>Laddar orderinformation...</p>;
+       
+          localStorage.removeItem('cart');
+          localStorage.removeItem('customer');
 
-  const total = order.order_items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
+        
+          return fetch(`http://localhost:3000/orders/payment/${sessionId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+        })
+        .then(() => {
+          console.log('Order uppdaterad till Paid/Received');
+
+          
+          setOrder((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  payment_status: 'Paid',
+                  order_status: 'Received',
+                }
+              : prev
+          );
+        })
+        .catch((err) => {
+          console.error('Kunde inte hämta eller uppdatera ordern:', err);
+        });
+    }
+  }, []);
+
+  if (!order) {
+    return <p>Laddar orderinformation...</p>;
+  }
+
+  const total = order.items.reduce((sum, item) => sum + Number(item.price), 0);
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Tack för din beställning! 🎉</h1>
-      <p><strong>Namn:</strong> {order.customer.name}</p>
-      <p><strong>E-post:</strong> {order.customer.email}</p>
+      <h1>Tack för din beställning!</h1>
+      <p><strong>Order-ID:</strong> {order.id}</p>
+      <p><strong>Kund:</strong> {order.customer.name} ({order.customer.email})</p>
+      <p><strong>Status:</strong> {order.payment_status} / {order.order_status}</p>
 
-      <h2>Produkter</h2>
+      <h2>Produkter:</h2>
       <ul>
-        {order.order_items.map((item, index) => (
-          <li key={index}>
-            {item.product.name} – {item.product.price} kr × {item.quantity}
+        {order.items.map((item, i) => (
+          <li key={i}>
+            {item.name} – {Number(item.price).toFixed(2)} kr
           </li>
         ))}
       </ul>
-
-      <h3>Totalt: {total} kr</h3>
-      <p>Status: {order.payment_status} / {order.order_status}</p>
+      <p><strong>Totalt:</strong> {total.toFixed(2)} kr</p>
     </div>
   );
 }

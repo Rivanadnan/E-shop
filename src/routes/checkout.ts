@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import db from '../db';
 import Stripe from 'stripe';
 
@@ -6,9 +6,9 @@ const router = Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2023-10-16',
-});
+} as Stripe.StripeConfig);
 
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   const { customer, cart } = req.body;
 
   if (!customer || !cart || cart.length === 0) {
@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // Kolla om kunden redan finns
+   
     const [existing] = await db.promise().query(
       'SELECT * FROM customers WHERE email = ?',
       [customer.email]
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
       customerId = (result as any).insertId;
     }
 
-    // Skapa order
+   
     const [orderResult] = await db.promise().query(
       'INSERT INTO orders (customer_id, payment_status, payment_id, order_status) VALUES (?, ?, ?, ?)',
       [customerId, 'Unpaid', '', 'Pending']
@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
 
     const orderId = (orderResult as any).insertId;
 
-    // Lägg till order_items
+ 
     for (const item of cart) {
       await db.promise().query(
         'INSERT INTO order_items (order_id, product_id, quantity) VALUES (?, ?, ?)',
@@ -50,7 +50,6 @@ router.post('/', async (req, res) => {
       );
     }
 
-    // Skapa Stripe Checkout-session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -71,7 +70,7 @@ router.post('/', async (req, res) => {
       },
     });
 
-    // Uppdatera order med Stripe-session
+    
     await db.promise().query(
       'UPDATE orders SET payment_id = ?, payment_status = ?, order_status = ? WHERE id = ?',
       [session.id, 'Unpaid', 'Pending', orderId]
@@ -79,10 +78,11 @@ router.post('/', async (req, res) => {
 
     res.json({ url: session.url });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Något gick fel vid checkout' });
+} catch (err: any) {
+    console.error('Checkout-fel:', err.message);
+    res.status(500).json({ error: 'Något gick fel vid checkout', details: err.message });
   }
+  
 });
 
 export default router;
