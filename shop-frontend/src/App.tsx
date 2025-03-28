@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Checkout from './Checkout';
 import Confirmation from './Confirmation';
+import './styles.css';
+
 
 type Product = {
   id: number;
