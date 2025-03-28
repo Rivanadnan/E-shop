@@ -35,6 +35,10 @@ function Checkout() {
 
   const total = cart.reduce((sum, item) => sum + item.price, 0);
 
+
+  
+
+
   const handleCheckout = async () => {
     try {
       const res = await fetch('http://localhost:3000/checkout', {
@@ -46,7 +50,7 @@ function Checkout() {
       });
 
       const data = await res.json();
-      console.log('Svar från checkout:', data); // 👈 HÄR SER DU SVARET
+      console.log('Svar från checkout:', data);
 
       if (data.url) {
         window.location.href = data.url;
@@ -57,6 +61,12 @@ function Checkout() {
       console.error('Checkout-fel:', error);
       alert('Kunde inte genomföra betalning.');
     }
+  };
+
+  const clearCart = () => {
+    localStorage.removeItem('cart');
+    setCart([]);
+    alert('Varukorgen är nu tömd.');
   };
 
   return (
@@ -94,6 +104,15 @@ function Checkout() {
           <button onClick={handleCheckout}>
             Gå till betalning
           </button>
+
+          <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+            <button onClick={() => window.location.href = '/'}>
+              🏠 Till startsidan
+            </button>
+            <button onClick={clearCart}>
+              🗑️ Töm varukorg
+            </button>
+          </div>
         </>
       )}
     </div>
