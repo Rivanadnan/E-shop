@@ -5,8 +5,8 @@ import Stripe from 'stripe';
 const router = Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16',
-} as Stripe.StripeConfig);
+  apiVersion: '2025-02-24.acacia'
+});
 
 router.post('/', async (req: Request, res: Response) => {
   const { customer, cart } = req.body;
@@ -16,7 +16,7 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   try {
-   
+
     const [existing] = await db.promise().query(
       'SELECT * FROM customers WHERE email = ?',
       [customer.email]
@@ -24,8 +24,8 @@ router.post('/', async (req: Request, res: Response) => {
 
     let customerId;
 
-    if ((existing as any).length > 0) {
-      customerId = (existing as any)[0].id;
+    if ((existing as any[]).length > 0) {
+      customerId = (existing as any[])[0].id;
     } else {
       const [result] = await db.promise().query(
         'INSERT INTO customers (name, email) VALUES (?, ?)',
@@ -34,7 +34,7 @@ router.post('/', async (req: Request, res: Response) => {
       customerId = (result as any).insertId;
     }
 
-   
+
     const [orderResult] = await db.promise().query(
       'INSERT INTO orders (customer_id, payment_status, payment_id, order_status) VALUES (?, ?, ?, ?)',
       [customerId, 'Unpaid', '', 'Pending']
@@ -42,7 +42,6 @@ router.post('/', async (req: Request, res: Response) => {
 
     const orderId = (orderResult as any).insertId;
 
- 
     for (const item of cart) {
       await db.promise().query(
         'INSERT INTO order_items (order_id, product_id, quantity) VALUES (?, ?, ?)',
@@ -59,7 +58,7 @@ router.post('/', async (req: Request, res: Response) => {
           product_data: {
             name: item.name,
           },
-          unit_amount: Math.round(item.price * 100),
+          unit_amount: Math.round(Number(item.price) * 100),
         },
         quantity: 1,
       })),
@@ -70,7 +69,6 @@ router.post('/', async (req: Request, res: Response) => {
       },
     });
 
-    
     await db.promise().query(
       'UPDATE orders SET payment_id = ?, payment_status = ?, order_status = ? WHERE id = ?',
       [session.id, 'Unpaid', 'Pending', orderId]
@@ -78,11 +76,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.json({ url: session.url });
 
-} catch (err: any) {
+  } catch (err: any) {
     console.error('Checkout-fel:', err.message);
     res.status(500).json({ error: 'Något gick fel vid checkout', details: err.message });
   }
-  
 });
 
 export default router;
