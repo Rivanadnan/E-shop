@@ -1,14 +1,4 @@
-:root {
-  --primary: #0077cc;
-  --danger: #ff4d4f;
-  --background: #f2f5f9;
-  --white: #ffffff;
-  --text: #000000;
-  --shadow: rgba(0, 0, 0, 0.08);
-  --radius: 8px;
-  --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
+/* Reset och font */
 * {
   margin: 0;
   padding: 0;
@@ -16,181 +6,101 @@
 }
 
 body {
-  font-family: var(--font);
-  background-color: var(--background);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f7f7f7;
+  color: #333;
 }
 
-.container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+/* Navigering */
+nav {
+  background-color: white;
+  padding: 1rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-
-header {
-  background-color: var(--white);
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 4px var(--shadow);
-}
-
-header .logo {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: var(--text);
-}
-
-header .nav-links a {
-  margin: 0 12px;
-  color: var(--text);
+nav a {
   text-decoration: none;
-  font-weight: 500;
+  color: #007bff;
+  margin-right: 15px;
+  font-weight: bold;
 }
 
-header .nav-links a:hover {
-  color: var(--primary);
+/* Sökfält */
+.search-bar {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
 }
 
-
-.banner {
-  background-color: #eaf3fc;
-  text-align: center;
-  padding: 60px 20px;
-  border-bottom: 1px solid #d0e2f0;
+.search-bar input {
+  padding: 10px;
+  width: 300px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px 0 0 5px;
 }
 
-.banner h1 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-}
-
-.banner .cta-btn {
-  padding: 12px 24px;
-  background-color: var(--primary);
-  color: var(--white);
+.search-bar button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
   border: none;
-  font-size: 1rem;
+  border-radius: 0 5px 5px 0;
   cursor: pointer;
-  border-radius: var(--radius);
-  transition: background-color 0.3s;
 }
 
-.banner .cta-btn:hover {
-  background-color: #005fa3;
-}
-
-
+/* Produktgrid */
 .products {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 30px;
-  margin-top: 40px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
+  padding: 0 2rem;
 }
 
+/* Produktkort */
 .product-card {
-  background-color: var(--white);
-  border-radius: var(--radius);
-  padding: 20px;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   text-align: center;
-  box-shadow: 0 2px 8px var(--shadow);
+  transition: transform 0.2s;
+}
+
+.product-card:hover {
+  transform: scale(1.02);
 }
 
 .product-card img {
   width: 100%;
-  border-radius: var(--radius);
-  margin-bottom: 15px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-bottom: 1rem;
 }
 
 .product-card h3 {
   font-size: 1.1rem;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .product-card p {
-  color: var(--primary);
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
 }
 
-.product-card .btn {
-  padding: 10px 20px;
-  background-color: var(--text);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.product-card .btn:hover {
-  background-color: #333;
-}
-
-
-.utility-buttons {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-
-.utility-buttons button {
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.home-btn {
-  background-color: var(--primary);
-  color: var(--white);
-}
-
-.home-btn:hover {
-  background-color: #005fa3;
-}
-
-.clear-btn {
-  background-color: var(--danger);
-  color: var(--white);
-}
-
-.clear-btn:hover {
-  background-color: #cc0000;
-}
-
-
-form label {
+.product-card strong {
+  color: #28a745;
   display: block;
-  margin-bottom: 10px;
-  font-weight: 500;
+  margin-bottom: 1rem;
 }
 
-form input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: var(--radius);
-  margin-top: 4px;
-  margin-bottom: 15px;
-  font-size: 1rem;
-}
-
-
-footer {
-  background-color: var(--text);
-  color: var(--white);
-  padding: 30px 0;
-  text-align: center;
-  margin-top: auto;
+.product-card button {
+  padding: 10px 15px;
+  background-color: #28a745;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
 }

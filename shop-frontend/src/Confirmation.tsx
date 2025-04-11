@@ -33,11 +33,11 @@ function Confirmation() {
         .then((data) => {
           setOrder(data);
 
-       
+          // Rensa localStorage
           localStorage.removeItem('cart');
           localStorage.removeItem('customer');
 
-        
+          // Uppdatera orderstatus
           return fetch(`http://localhost:3000/orders/payment/${sessionId}`, {
             method: 'PUT',
             headers: {
@@ -48,7 +48,7 @@ function Confirmation() {
         .then(() => {
           console.log('Order uppdaterad till Paid/Received');
 
-          
+          // Uppdatera status lokalt också
           setOrder((prev) =>
             prev
               ? {
@@ -76,7 +76,11 @@ function Confirmation() {
       <h1>Tack för din beställning!</h1>
       <p><strong>Order-ID:</strong> {order.id}</p>
       <p><strong>Kund:</strong> {order.customer.name} ({order.customer.email})</p>
-      <p><strong>Status:</strong> {order.payment_status} / {order.order_status}</p>
+      <p><strong>Status:</strong> 
+        {order.payment_status === 'Paid' && order.order_status === 'Received'
+          ? ' Betald / Mottagen'
+          : ` ${order.payment_status} / ${order.order_status}`}
+      </p>
 
       <h2>Produkter:</h2>
       <ul>

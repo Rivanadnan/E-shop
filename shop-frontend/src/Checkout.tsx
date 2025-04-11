@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './index.css';
 
 type Product = {
   id: number;
@@ -15,10 +16,7 @@ type Customer = {
 
 function Checkout() {
   const [cart, setCart] = useState<Product[]>([]);
-  const [customer, setCustomer] = useState<Customer>({
-    name: '',
-    email: ''
-  });
+  const [customer, setCustomer] = useState<Customer>({ name: '', email: '' });
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -39,9 +37,7 @@ function Checkout() {
     try {
       const res = await fetch('http://localhost:3000/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer, cart }),
       });
 
@@ -59,59 +55,130 @@ function Checkout() {
     }
   };
 
-  // 🧹 Uppdaterad clearCart med omstart
   const clearCart = () => {
     localStorage.removeItem('cart');
     setCart([]);
     alert('Varukorgen är nu tömd.');
-    window.location.reload(); // 🔁 detta löser att header & kassa uppdateras
+    window.location.reload();
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Checkout</h1>
+    <div className="container">
+      <h1 style={{ marginBottom: '2rem', textAlign: 'center' }}>Kassa</h1>
 
       {cart.length === 0 ? (
-        <p>Din varukorg är tom.</p>
+        <p style={{ textAlign: 'center' }}>🛒 Din varukorg är tom.</p>
       ) : (
-        <>
-          <h2>Produkter i varukorgen:</h2>
-          <ul>
-            {cart.map((item, index) => (
-              <li key={index}>
-                {item.name} – {item.price} kr
-              </li>
-            ))}
-          </ul>
-          <p><strong>Totalt:</strong> {Number.isFinite(total) ? total.toFixed(2) : '0.00'} kr</p>
-
-          <h2>Kunduppgifter</h2>
-          <form>
-            <label>
-              Namn:
-              <input type="text" name="name" value={customer.name} onChange={handleChange} required />
-            </label>
-            <br />
-            <label>
-              E-post:
-              <input type="email" name="email" value={customer.email} onChange={handleChange} required />
-            </label>
-          </form>
-
-          <br />
-          <button onClick={handleCheckout}>
-            Gå till betalning
-          </button>
-
-          <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-            <button onClick={() => window.location.href = '/'}>
-              🏠 Till startsidan
-            </button>
-            <button onClick={clearCart}>
-              🗑️ Töm varukorg
-            </button>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '2rem',
+            maxWidth: '800px',
+            margin: '0 auto',
+          }}
+        >
+          {/* Vänster – produkter */}
+          <div>
+            <h2>Varukorg</h2>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {cart.map((item, index) => (
+                <li
+                  key={index}
+                  style={{
+                    background: '#fff',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <strong>{item.name}</strong> – {item.price} kr
+                </li>
+              ))}
+            </ul>
+            <p style={{ fontWeight: 'bold' }}>Totalt: {total.toFixed(2)} kr</p>
           </div>
-        </>
+
+          {/* Höger – formulär */}
+          <div>
+            <h2>Kunduppgifter</h2>
+            <form
+              style={{
+                background: '#fff',
+                padding: '1.5rem',
+                borderRadius: '10px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+              }}
+            >
+              <input
+                type="text"
+                name="name"
+                placeholder="Ditt namn"
+                value={customer.name}
+                onChange={handleChange}
+                required
+                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Din e-post"
+                value={customer.email}
+                onChange={handleChange}
+                required
+                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+              />
+              <button
+                type="button"
+                onClick={handleCheckout}
+                style={{
+                  padding: '12px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                }}
+              >
+                💳 Gå till betalning
+              </button>
+            </form>
+
+            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+              <button
+                onClick={() => window.location.href = '/'}
+                style={{
+                  padding: '10px',
+                  border: '1px solid #007bff',
+                  borderRadius: '5px',
+                  background: 'white',
+                  color: '#007bff',
+                  cursor: 'pointer',
+                }}
+              >
+                🏠 Till startsidan
+              </button>
+              <button
+                onClick={clearCart}
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#dc3545',
+                  border: 'none',
+                  borderRadius: '5px',
+                  color: 'white',
+                  cursor: 'pointer',
+                }}
+              >
+                🗑️ Töm varukorg
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
