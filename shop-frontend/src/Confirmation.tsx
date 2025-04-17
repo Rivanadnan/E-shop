@@ -37,17 +37,15 @@ function Confirmation() {
     if (sessionId) {
       const fetchOrder = async () => {
         try {
-          const res = await fetch(`https://ecommerce-api-delta-three.vercel.app/orders/payment/${sessionId}`);
+          const res = await fetch(`https://ecommerce-api-new-omega.vercel.app/orders/payment/${sessionId}`);
           const data = await res.json();
           setOrder(data);
 
-          // ✅ Uppdatera orderstatus till "Paid" och "Received"
-          await fetch(`https://ecommerce-api-delta-three.vercel.app/orders/payment/${sessionId}`, {
+          await fetch(`https://ecommerce-api-new-omega.vercel.app/orders/payment/${sessionId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' }
           });
 
-          // ✅ Rensa kund- och varukorg från localStorage
           localStorage.removeItem('cart');
           localStorage.removeItem('customer');
         } catch (err) {

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Checkout from './Checkout';
 import Confirmation from './Confirmation';
 import GoogleSearch from './GoogleSearch';
+import Register from './Register';
+import Login from './Login';
 
 type Product = {
   id: number;
@@ -20,7 +22,7 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`https://ecommerce-api-delta-three.vercel.app/products?search=${searchTerm}`);
+      const response = await fetch(`https://ecommerce-api-new.vercel.app/products?search=${searchTerm}`);
       const data = await response.json();
       setProducts(data);
     } catch (err) {
@@ -30,6 +32,7 @@ function App() {
 
   useEffect(() => {
     fetchProducts();
+
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
       setCart(JSON.parse(savedCart));
@@ -54,10 +57,12 @@ function App() {
 
   return (
     <Router>
-      <nav style={{ padding: '1rem', background: '#eee', display: 'flex', gap: '2rem' }}>
+      <nav style={{ padding: '1rem', background: '#eee', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
         <Link to="/">Start</Link>
         <Link to="/checkout">🛒 Kassan ({cart.reduce((sum, item) => sum + (item.quantity || 1), 0)})</Link>
         <Link to="/search">🔎 Sök</Link>
+        <Link to="/register">🆕 Skapa konto</Link>
+        <Link to="/login">🔐 Logga in</Link>
       </nav>
 
       <Routes>
@@ -122,6 +127,8 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/confirmation" element={<Confirmation />} />
         <Route path="/search" element={<GoogleSearch />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </Router>
   );

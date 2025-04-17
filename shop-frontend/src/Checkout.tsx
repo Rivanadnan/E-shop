@@ -67,21 +67,40 @@ function Checkout() {
 
   const handleCheckout = async () => {
     try {
-      const res = await fetch('https://ecommerce-api-delta-three.vercel.app/checkout', {
+      const fullName = `${customer.firstname} ${customer.lastname}`;
+
+      const payload = {
+        customer: {
+          name: fullName,
+          email: customer.email,
+          phone: customer.phone,
+          street_address: customer.street_address,
+          postal_code: customer.postal_code,
+          city: customer.city,
+          country: customer.country,
+        },
+        cart,
+      };
+
+      localStorage.setItem('customer', JSON.stringify(customer)); // ✅ spara kundinfo
+
+      const res = await fetch('https://ecommerce-api-new-omega.vercel.app/stripe/checkout-session-hosted', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
+
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert('Något gick fel vid betalningen.');
+        alert('❌ Något gick fel vid betalningen.');
+        console.error('Ingen URL:', data);
       }
     } catch (error) {
       console.error('Checkout-fel:', error);
-      alert('Kunde inte genomföra betalning.');
+      alert('❌ Kunde inte genomföra betalning.');
     }
   };
 

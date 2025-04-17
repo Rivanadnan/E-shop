@@ -15,7 +15,7 @@ const port = 3000;
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://ecommerce-api-delta-three.vercel.app' // 🔁 ändra till din frontend-URL om den är annorlunda
+    'https://e-shop-nu-two.vercel.app' // 🔁 ändra till din frontend-URL om den är annorlunda
   ],
   credentials: true
 }));
