@@ -16,10 +16,9 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   try {
-    const [existing] = await db.promise().query(
-      'SELECT * FROM customers WHERE email = ?',
-      [customer.email]
-    );
+    const [existing] = await db
+      .promise()
+      .query('SELECT * FROM customers WHERE email = ?', [customer.email]);
 
     let customerId;
 
@@ -27,23 +26,36 @@ router.post('/', async (req: Request, res: Response) => {
       customerId = (existing as any[])[0].id;
     } else {
       const [result] = await db.promise().query(
-        'INSERT INTO customers (name, email) VALUES (?, ?)',
-        [customer.name, customer.email]
+        'INSERT INTO customers (firstname, lastname, email, phone, street_address, postal_code, city, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          customer.firstname || '',
+          customer.lastname || '',
+          customer.email,
+          customer.phone || '',
+          customer.street_address || '',
+          customer.postal_code || '',
+          customer.city || '',
+          customer.country || '',
+        ]
       );
       customerId = (result as any).insertId;
     }
 
-    const [orderResult] = await db.promise().query(
-      'INSERT INTO orders (customer_id, payment_status, payment_id, order_status) VALUES (?, ?, ?, ?)',
-      [customerId, 'Unpaid', '', 'Pending']
-    );
+    const totalPrice = cart.reduce((sum: number, item: any) => sum + Number(item.price), 0);
+
+    const [orderResult] = await db
+      .promise()
+      .query(
+        'INSERT INTO orders (customer_id, total_price, payment_status, payment_id, order_status) VALUES (?, ?, ?, ?, ?)',
+        [customerId, totalPrice, 'unpaid', '', 'pending']
+      );
 
     const orderId = (orderResult as any).insertId;
 
     for (const item of cart) {
       await db.promise().query(
-        'INSERT INTO order_items (order_id, product_id, quantity) VALUES (?, ?, ?)',
-        [orderId, item.id, 1]
+        'INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price) VALUES (?, ?, ?, ?, ?)',
+        [orderId, item.id, item.name, item.quantity || 1, item.price]
       );
     }
 
@@ -58,9 +70,9 @@ router.post('/', async (req: Request, res: Response) => {
           },
           unit_amount: Math.round(Number(item.price) * 100),
         },
-        quantity: 1,
+        quantity: item.quantity || 1,
       })),
-      success_url: `http://localhost:5173/confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: 'http://localhost:5173/confirmation?session_id={CHECKOUT_SESSION_ID}',
       cancel_url: 'http://localhost:5173/checkout',
       metadata: {
         order_id: orderId.toString(),
@@ -69,11 +81,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     await db.promise().query(
       'UPDATE orders SET payment_id = ?, payment_status = ?, order_status = ? WHERE id = ?',
-      [session.id, 'Unpaid', 'Pending', orderId]
+      [session.id, 'unpaid', 'pending', orderId]
     );
 
     res.json({ url: session.url });
-
   } catch (err: any) {
     console.error('Checkout-fel:', err.message);
     res.status(500).json({ error: 'Något gick fel vid checkout', details: err.message });

@@ -7,65 +7,72 @@ type Product = {
   description: string;
   price: number;
   image_url: string;
-  quantity: number;
+  quantity?: number; // 👈 kvantitet per produkt
 };
 
 type Customer = {
-  name: string;
+  firstname: string;
+  lastname: string;
   email: string;
+  phone: string;
+  street_address: string;
+  postal_code: string;
+  city: string;
+  country: string;
 };
 
 function Checkout() {
   const [cart, setCart] = useState<Product[]>([]);
-  const [customer, setCustomer] = useState<Customer>({ name: '', email: '' });
+  const [customer, setCustomer] = useState<Customer>({
+    firstname: '',
+    lastname: '',
+    email: '',
+    phone: '',
+    street_address: '',
+    postal_code: '',
+    city: '',
+    country: '',
+  });
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
-    const savedCustomer = localStorage.getItem('customer');
     if (savedCart) {
-      const parsed = JSON.parse(savedCart).map((item: any) => ({
-        ...item,
-        quantity: item.quantity || 1,
-      }));
-      setCart(parsed);
+      setCart(JSON.parse(savedCart));
     }
-    if (savedCustomer) setCustomer(JSON.parse(savedCustomer));
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCustomer((prev) => ({ ...prev, [name]: value }));
-    localStorage.setItem('customer', JSON.stringify({ ...customer, [name]: value }));
   };
 
-  const updateQuantity = (index: number, amount: number) => {
-    const updated = [...cart];
-    updated[index].quantity += amount;
-    if (updated[index].quantity < 1) updated[index].quantity = 1;
-    setCart(updated);
-    localStorage.setItem('cart', JSON.stringify(updated));
+  const handleQuantityChange = (index: number, delta: number) => {
+    const newCart = [...cart];
+    newCart[index].quantity = Math.max((newCart[index].quantity || 1) + delta, 1);
+    setCart(newCart);
   };
 
-  const removeItem = (index: number) => {
-    const updated = [...cart];
-    updated.splice(index, 1);
-    setCart(updated);
-    localStorage.setItem('cart', JSON.stringify(updated));
+  const handleRemoveItem = (index: number) => {
+    const newCart = [...cart];
+    newCart.splice(index, 1);
+    setCart(newCart);
   };
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = cart.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0);
 
   const handleCheckout = async () => {
     try {
-      const res = await fetch('http://localhost:3000/checkout', {
+      const res = await fetch('https://ecommerce-api-delta-three.vercel.app/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer, cart }),
       });
 
       const data = await res.json();
-      console.log('Svar från checkout:', data);
-
       if (data.url) {
         window.location.href = data.url;
       } else {
@@ -77,13 +84,6 @@ function Checkout() {
     }
   };
 
-  const clearCart = () => {
-    localStorage.removeItem('cart');
-    setCart([]);
-    alert('Varukorgen är nu tömd.');
-    window.location.reload();
-  };
-
   return (
     <div className="container">
       <h1 style={{ marginBottom: '2rem', textAlign: 'center' }}>Kassa</h1>
@@ -91,125 +91,42 @@ function Checkout() {
       {cart.length === 0 ? (
         <p style={{ textAlign: 'center' }}>🛒 Din varukorg är tom.</p>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '2rem',
-            maxWidth: '800px',
-            margin: '0 auto',
-          }}
-        >
-          {/* Vänster – produkter */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '800px', margin: '0 auto' }}>
           <div>
             <h2>Varukorg</h2>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {cart.map((item, index) => (
-                <li
-                  key={index}
-                  style={{
-                    background: '#fff',
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    marginBottom: '1rem',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <strong>{item.name}</strong> – {item.price} kr <br />
-                    <small>Antal: {item.quantity}</small>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => updateQuantity(index, -1)}>-</button>
-                    <button onClick={() => updateQuantity(index, 1)}>+</button>
-                    <button onClick={() => removeItem(index)}>❌</button>
-                  </div>
+                <li key={index} style={{ background: '#fff', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                  <strong>{item.name}</strong> – {item.price} kr<br />
+                  Kvantitet:
+                  <button onClick={() => handleQuantityChange(index, -1)}>-</button>
+                  <span style={{ margin: '0 8px' }}>{item.quantity || 1}</span>
+                  <button onClick={() => handleQuantityChange(index, 1)}>+</button>
+                  <br />
+                  <button onClick={() => handleRemoveItem(index)} style={{ marginTop: '5px', color: 'red' }}>
+                    Ta bort
+                  </button>
                 </li>
               ))}
             </ul>
             <p style={{ fontWeight: 'bold' }}>Totalt: {total.toFixed(2)} kr</p>
           </div>
 
-          {/* Höger – formulär */}
           <div>
             <h2>Kunduppgifter</h2>
-            <form
-              style={{
-                background: '#fff',
-                padding: '1.5rem',
-                borderRadius: '10px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              <input
-                type="text"
-                name="name"
-                placeholder="Ditt namn"
-                value={customer.name}
-                onChange={handleChange}
-                required
-                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Din e-post"
-                value={customer.email}
-                onChange={handleChange}
-                required
-                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-              />
-              <button
-                type="button"
-                onClick={handleCheckout}
-                style={{
-                  padding: '12px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                }}
-              >
+            <form style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <input name="firstname" placeholder="Förnamn" value={customer.firstname} onChange={handleChange} />
+              <input name="lastname" placeholder="Efternamn" value={customer.lastname} onChange={handleChange} />
+              <input name="email" placeholder="E-post" type="email" value={customer.email} onChange={handleChange} />
+              <input name="phone" placeholder="Telefon" value={customer.phone} onChange={handleChange} />
+              <input name="street_address" placeholder="Adress" value={customer.street_address} onChange={handleChange} />
+              <input name="postal_code" placeholder="Postnummer" value={customer.postal_code} onChange={handleChange} />
+              <input name="city" placeholder="Stad" value={customer.city} onChange={handleChange} />
+              <input name="country" placeholder="Land" value={customer.country} onChange={handleChange} />
+              <button type="button" onClick={handleCheckout} style={{ marginTop: '1rem' }}>
                 💳 Gå till betalning
               </button>
             </form>
-
-            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-              <button
-                onClick={() => window.location.href = '/'}
-                style={{
-                  padding: '10px',
-                  border: '1px solid #007bff',
-                  borderRadius: '5px',
-                  background: 'white',
-                  color: '#007bff',
-                  cursor: 'pointer',
-                }}
-              >
-                🏠 Till startsidan
-              </button>
-              <button
-                onClick={clearCart}
-                style={{
-                  padding: '10px',
-                  backgroundColor: '#dc3545',
-                  border: 'none',
-                  borderRadius: '5px',
-                  color: 'white',
-                  cursor: 'pointer',
-                }}
-              >
-                🗑️ Töm varukorg
-              </button>
-            </div>
           </div>
         </div>
       )}
