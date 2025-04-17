@@ -7,6 +7,7 @@ type Product = {
   description: string;
   price: number;
   image_url: string;
+  quantity: number;
 };
 
 type Customer = {
@@ -21,7 +22,13 @@ function Checkout() {
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     const savedCustomer = localStorage.getItem('customer');
-    if (savedCart) setCart(JSON.parse(savedCart));
+    if (savedCart) {
+      const parsed = JSON.parse(savedCart).map((item: any) => ({
+        ...item,
+        quantity: item.quantity || 1,
+      }));
+      setCart(parsed);
+    }
     if (savedCustomer) setCustomer(JSON.parse(savedCustomer));
   }, []);
 
@@ -31,7 +38,22 @@ function Checkout() {
     localStorage.setItem('customer', JSON.stringify({ ...customer, [name]: value }));
   };
 
-  const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
+  const updateQuantity = (index: number, amount: number) => {
+    const updated = [...cart];
+    updated[index].quantity += amount;
+    if (updated[index].quantity < 1) updated[index].quantity = 1;
+    setCart(updated);
+    localStorage.setItem('cart', JSON.stringify(updated));
+  };
+
+  const removeItem = (index: number) => {
+    const updated = [...cart];
+    updated.splice(index, 1);
+    setCart(updated);
+    localStorage.setItem('cart', JSON.stringify(updated));
+  };
+
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = async () => {
     try {
@@ -91,9 +113,20 @@ function Checkout() {
                     borderRadius: '8px',
                     marginBottom: '1rem',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}
                 >
-                  <strong>{item.name}</strong> – {item.price} kr
+                  <div>
+                    <strong>{item.name}</strong> – {item.price} kr <br />
+                    <small>Antal: {item.quantity}</small>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => updateQuantity(index, -1)}>-</button>
+                    <button onClick={() => updateQuantity(index, 1)}>+</button>
+                    <button onClick={() => removeItem(index)}>❌</button>
+                  </div>
                 </li>
               ))}
             </ul>
