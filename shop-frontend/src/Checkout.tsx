@@ -7,7 +7,7 @@ type Product = {
   description: string;
   price: number;
   image_url: string;
-  quantity?: number; // 👈 kvantitet per produkt
+  quantity: number;
 };
 
 type Customer = {
@@ -37,36 +37,37 @@ function Checkout() {
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-      setCart(JSON.parse(savedCart));
+      const parsedCart = JSON.parse(savedCart);
+      const cartWithQuantity = parsedCart.map((item: any) => ({
+        ...item,
+        quantity: item.quantity || 1,
+      }));
+      setCart(cartWithQuantity);
     }
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCustomer((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleQuantityChange = (index: number, delta: number) => {
-    const newCart = [...cart];
-    newCart[index].quantity = Math.max((newCart[index].quantity || 1) + delta, 1);
-    setCart(newCart);
+  const updateQuantity = (index: number, delta: number) => {
+    const updatedCart = [...cart];
+    updatedCart[index].quantity += delta;
+
+    if (updatedCart[index].quantity < 1) {
+      updatedCart.splice(index, 1);
+    }
+
+    setCart(updatedCart);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
-  const handleRemoveItem = (index: number) => {
-    const newCart = [...cart];
-    newCart.splice(index, 1);
-    setCart(newCart);
-  };
-
-  const total = cart.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0);
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = async () => {
     try {
-      const res = await fetch('https://ecommerce-api-delta-three.vercel.app/checkout', {
+      const res = await fetch('http://localhost:3000/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer, cart }),
@@ -84,9 +85,15 @@ function Checkout() {
     }
   };
 
+  const clearCart = () => {
+    localStorage.removeItem('cart');
+    setCart([]);
+    alert('🗑️ Varukorgen är nu tömd.');
+  };
+
   return (
     <div className="container">
-      <h1 style={{ marginBottom: '2rem', textAlign: 'center' }}>Kassa</h1>
+      <h1 style={{ textAlign: 'center' }}>Kassa</h1>
 
       {cart.length === 0 ? (
         <p style={{ textAlign: 'center' }}>🛒 Din varukorg är tom.</p>
@@ -97,19 +104,31 @@ function Checkout() {
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {cart.map((item, index) => (
                 <li key={index} style={{ background: '#fff', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-                  <strong>{item.name}</strong> – {item.price} kr<br />
-                  Kvantitet:
-                  <button onClick={() => handleQuantityChange(index, -1)}>-</button>
-                  <span style={{ margin: '0 8px' }}>{item.quantity || 1}</span>
-                  <button onClick={() => handleQuantityChange(index, 1)}>+</button>
-                  <br />
-                  <button onClick={() => handleRemoveItem(index)} style={{ marginTop: '5px', color: 'red' }}>
-                    Ta bort
-                  </button>
+                  <strong>{item.name}</strong> – {item.price} kr x {item.quantity}
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                    <button onClick={() => updateQuantity(index, -1)}>-</button>
+                    <button onClick={() => updateQuantity(index, 1)}>+</button>
+                  </div>
                 </li>
               ))}
             </ul>
             <p style={{ fontWeight: 'bold' }}>Totalt: {total.toFixed(2)} kr</p>
+
+            {/* 🗑️ Knapp för att tömma varukorgen */}
+            <button
+              onClick={clearCart}
+              style={{
+                marginTop: '1rem',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                padding: '10px 15px',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+              }}
+            >
+              🗑️ Töm varukorg
+            </button>
           </div>
 
           <div>
