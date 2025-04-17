@@ -1,15 +1,16 @@
-// shop-frontend/src/App.tsx
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Checkout from './Checkout';
 import Confirmation from './Confirmation';
-import GoogleSearch from './GoogleSearch'; 
+import GoogleSearch from './GoogleSearch';
+
 type Product = {
   id: number;
   name: string;
   description: string;
   price: number;
   image_url: string;
+  quantity?: number;
 };
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/products?search=${searchTerm}`);
+      const response = await fetch(`https://ecommerce-api-delta-three.vercel.app/products?search=${searchTerm}`);
       const data = await response.json();
       setProducts(data);
     } catch (err) {
@@ -29,7 +30,6 @@ function App() {
 
   useEffect(() => {
     fetchProducts();
-
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
       setCart(JSON.parse(savedCart));
@@ -37,7 +37,17 @@ function App() {
   }, []);
 
   const addToCart = (product: Product) => {
-    const updatedCart = [...cart, product];
+    const existingProduct = cart.find((item) => item.id === product.id);
+    let updatedCart;
+
+    if (existingProduct) {
+      updatedCart = cart.map((item) =>
+        item.id === product.id ? { ...item, quantity: (item.quantity || 1) + 1 } : item
+      );
+    } else {
+      updatedCart = [...cart, { ...product, quantity: 1 }];
+    }
+
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
@@ -46,8 +56,8 @@ function App() {
     <Router>
       <nav style={{ padding: '1rem', background: '#eee', display: 'flex', gap: '2rem' }}>
         <Link to="/">Start</Link>
-        <Link to="/checkout">Gå till kassan ({cart.length})</Link>
-        <Link to="/search">🔎 Sök</Link> {/* ✅ NY */}
+        <Link to="/checkout">🛒 Kassan ({cart.reduce((sum, item) => sum + (item.quantity || 1), 0)})</Link>
+        <Link to="/search">🔎 Sök</Link>
       </nav>
 
       <Routes>
@@ -57,12 +67,13 @@ function App() {
             <div className="container">
               <h1 style={{ textAlign: 'center', marginBottom: '1rem' }}>Produkter</h1>
 
-              <div className="search-bar">
+              <div className="search-bar" style={{ marginBottom: '1rem' }}>
                 <input
                   type="text"
                   placeholder="Sök produkt..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ padding: '0.5rem', marginRight: '0.5rem' }}
                 />
                 <button onClick={fetchProducts}>Sök</button>
               </div>
@@ -76,7 +87,7 @@ function App() {
                       padding: '1rem',
                       width: '200px',
                       borderRadius: '8px',
-                      backgroundColor: '#f9f9f9'
+                      backgroundColor: '#f9f9f9',
                     }}
                   >
                     <img
@@ -97,7 +108,7 @@ function App() {
                         color: 'white',
                         border: 'none',
                         borderRadius: '4px',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
                       }}
                     >
                       Lägg till i varukorg
@@ -110,7 +121,7 @@ function App() {
         />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/confirmation" element={<Confirmation />} />
-        <Route path="/search" element={<GoogleSearch />} /> {/* ✅ NY */}
+        <Route path="/search" element={<GoogleSearch />} />
       </Routes>
     </Router>
   );

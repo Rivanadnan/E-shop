@@ -67,7 +67,7 @@ function Checkout() {
 
   const handleCheckout = async () => {
     try {
-      const res = await fetch('http://localhost:3000/checkout', {
+      const res = await fetch('https://ecommerce-api-delta-three.vercel.app/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer, cart }),
@@ -114,7 +114,6 @@ function Checkout() {
             </ul>
             <p style={{ fontWeight: 'bold' }}>Totalt: {total.toFixed(2)} kr</p>
 
-            {/* 🗑️ Knapp för att tömma varukorgen */}
             <button
               onClick={clearCart}
               style={{
