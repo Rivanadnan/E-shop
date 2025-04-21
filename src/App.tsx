@@ -24,6 +24,7 @@ function App() {
     try {
       const response = await fetch(`https://ecommerce-api-new.vercel.app/products?search=${searchTerm}`);
       const data = await response.json();
+      console.log("data", data)
       setProducts(data);
     } catch (err) {
       console.error('Fel vid hämtning:', err);
