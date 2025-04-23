@@ -7,7 +7,7 @@ function Login() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch('https://ecommerce-api-new-coral.vercel.app/auth/login', {
+      const res = await fetch('https://ecommerce-api-o9lhq0kcc-warmness-travels-projects.vercel.app/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
