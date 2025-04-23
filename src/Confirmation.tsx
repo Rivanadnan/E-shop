@@ -36,7 +36,7 @@ export default function Confirmation() {
       if (!sessionId) return;
 
       try {
-        const res = await fetch(`https://ecommerce-api-o9lhq0kcc-warmness-travels-projects.vercel.app/orders/payment/${sessionId}`);
+        const res = await fetch(`https://ecommerce-api-d114v2eae-warmness-travels-projects.vercel.app/orders/payment/${sessionId}`);
         const data = await res.json();
 
         const items = data.order_items || data.order?.order_items || [];
