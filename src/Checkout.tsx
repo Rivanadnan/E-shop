@@ -84,7 +84,7 @@ function Checkout() {
 
       localStorage.setItem('customer', JSON.stringify(customer)); // ✅ spara kundinfo
 
-      const res = await fetch('https://ecommerce-api-d114v2eae-warmness-travels-projects.vercel.app/stripe/checkout-session-hosted', {
+      const res = await fetch('https://ecommerce-api-ncn0prd88-warmness-travels-projects.vercel.app/stripe/checkout-session-hosted', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
