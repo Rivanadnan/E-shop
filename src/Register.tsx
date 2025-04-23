@@ -24,7 +24,7 @@ function Register() {
     }
 
     try {
-      const res = await fetch('https://ecommerce-api-new-coral.vercel.app/auth/register', {
+      const res = await fetch('https://ecommerce-api-o9lhq0kcc-warmness-travels-projects.vercel.app', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
