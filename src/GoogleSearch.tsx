@@ -1,66 +1,84 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const API_KEY = 'AIzaSyBdRBLgtvJhQ3qtWW4-FzQ037uW3MYilCY';
-const CSE_ID = 'a62ea9750df754041';
+const BACKEND_URL = 'https://ecommerce-api-new-coral.vercel.app';
 
-function GoogleSearch() {
+function ProductSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
-  const [startIndex, setStartIndex] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 10;
 
-  const fetchResults = async (customStartIndex = 1) => {
+  const fetchResults = async (page: number = 1) => {
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CSE_ID}&q=${query}&start=${customStartIndex}`
+      const res = await fetch(
+        `${BACKEND_URL}/products/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
       );
-      const data = await response.json();
-      setResults(data.items || []);
-      setStartIndex(customStartIndex);
-    } catch (err) {
-      console.error('Fel vid sök:', err);
+      const data = await res.json();
+      setResults(data);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('Fel vid sökning:', error);
     }
   };
 
+  useEffect(() => {
+    if (query) fetchResults(1);
+  }, [query]);
+
   return (
     <div style={{ padding: '2rem' }}>
-      <h2>Sök på webben</h2>
+      <h2>🔍 Sök efter produkter i vårt API</h2>
       <div style={{ marginBottom: '1rem' }}>
         <input
           type="text"
           value={query}
-          placeholder="Sök..."
+          placeholder="Sök efter produkt..."
           onChange={(e) => setQuery(e.target.value)}
           style={{ padding: '0.5rem', marginRight: '0.5rem' }}
         />
-        <button onClick={() => fetchResults()}>Sök</button>
+        <button onClick={() => fetchResults(1)}>Sök</button>
       </div>
 
-      <div>
-        {results.map((item, index) => (
-          <div key={index} style={{ borderBottom: '1px solid #ccc', marginBottom: '1rem' }}>
-            <a href={item.link} target="_blank" rel="noopener noreferrer">
-              <h3>{item.title}</h3>
-            </a>
-            <p>{item.snippet}</p>
-            {item.pagemap?.cse_image && item.pagemap.cse_image[0]?.src && (
-              <img src={item.pagemap.cse_image[0].src} alt="" style={{ width: '100px' }} />
+      {results.length > 0 ? (
+        <div>
+          {results.map((item, index) => (
+            <div
+              key={index}
+              style={{
+                borderBottom: '1px solid #ccc',
+                marginBottom: '1rem',
+                paddingBottom: '1rem',
+              }}
+            >
+              <h3>{item.name}</h3>
+              <p>{item.description}</p>
+              <p><strong>Pris:</strong> {item.price} kr</p>
+              {item.image && (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  style={{ width: '120px', borderRadius: '5px' }}
+                />
+              )}
+            </div>
+          ))}
+
+          <div style={{ marginTop: '1rem' }}>
+            {currentPage > 1 && (
+              <button onClick={() => fetchResults(currentPage - 1)} style={{ marginRight: '1rem' }}>
+                ⬅ Föregående sida
+              </button>
+            )}
+            {results.length === limit && (
+              <button onClick={() => fetchResults(currentPage + 1)}>Nästa sida ➡</button>
             )}
           </div>
-        ))}
-      </div>
-
-      {results.length > 0 && (
-        <div style={{ marginTop: '1rem' }}>
-          <button onClick={() => fetchResults(startIndex + 10)}>Nästa sida ➡</button>
-          {startIndex > 1 && (
-            <button onClick={() => fetchResults(startIndex - 10)} style={{ marginLeft: '1rem' }}>
-              ⬅ Föregående sida
-            </button>
-          )}
         </div>
+      ) : (
+        query && <p>🚫 Inga produkter hittades.</p>
       )}
     </div>
   );
 }
 
-export default GoogleSearch;
+export default ProductSearch;
