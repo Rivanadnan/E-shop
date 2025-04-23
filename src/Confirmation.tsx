@@ -1,63 +1,62 @@
+// src/pages/Confirmation.tsx
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-type Product = {
+type OrderItem = {
   product_name: string;
-  unit_price: number;
   quantity: number;
-};
-
-type Customer = {
-  firstname: string;
-  lastname: string;
-  email: string;
-  phone: string;
-  street_address: string;
-  postal_code: string;
-  city: string;
-  country: string;
+  unit_price: number;
 };
 
 type Order = {
   id: number;
-  total_price: number;
-  payment_status: string;
   order_status: string;
-  customer: Customer;
-  order_items: Product[];
+  payment_status: string;
+  total_price: number;
+  customer_firstname: string;
+  customer_lastname: string;
+  customer_email: string;
+  customer_phone: string;
+  customer_street_address: string;
+  customer_postal_code: string;
+  customer_city: string;
+  customer_country: string;
+  order_items: OrderItem[];
 };
 
-function Confirmation() {
-  const [searchParams] = useSearchParams();
+export default function Confirmation() {
+  const [params] = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const sessionId = params.get("session_id");
 
   useEffect(() => {
-    const sessionId = searchParams.get('session_id');
+    const fetchOrder = async () => {
+      if (!sessionId) return;
 
-    if (sessionId) {
-      const fetchOrder = async () => {
-        try {
-          const res = await fetch(`https://ecommerce-api-new-coral.vercel.app/orders/payment/${sessionId}`);
-          const data = await res.json();
-          setOrder(data);
+      try {
+        const res = await fetch(`https://ecommerce-api-new-coral.vercel.app/orders/payment/${sessionId}`);
+        const data = await res.json();
 
-          await fetch(`https://ecommerce-api-new-coral.vercel.app/orders/payment/${sessionId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' }
-          });
+        const items = data.order_items || data.order?.order_items || [];
+        const merged = { ...data, order_items: items };
 
-          localStorage.removeItem('cart');
-          localStorage.removeItem('customer');
-        } catch (err) {
-          console.error('Fel vid hämtning av order:', err);
-        }
-      };
+        setOrder(merged);
+        localStorage.removeItem("cart");
+        localStorage.removeItem("customer");
+      } catch (err) {
+        console.error("Fel vid hämtning av order:", err);
+      }
 
-      fetchOrder();
-    }
-  }, [searchParams]);
+      setLoading(false);
+    };
 
-  if (!order) return <p style={{ textAlign: 'center', marginTop: '2rem' }}>Hämtar orderinformation...</p>;
+    fetchOrder();
+  }, [sessionId]);
+
+  if (loading) return <p className="p-4">🔄 Laddar order...</p>;
+  if (!order) return <p className="p-4">❌ Ingen order hittades.</p>;
 
   return (
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
@@ -84,13 +83,13 @@ function Confirmation() {
 
       <section style={{ marginTop: '2rem' }}>
         <h2>👤 Kunduppgifter</h2>
-        <p>{order.customer.firstname} {order.customer.lastname}</p>
-        <p>{order.customer.email}</p>
-        <p>{order.customer.phone}</p>
-        <p>{order.customer.street_address}, {order.customer.postal_code} {order.customer.city}, {order.customer.country}</p>
+        <p>{order.customer_firstname} {order.customer_lastname}</p>
+        <p>{order.customer_email}</p>
+        <p>{order.customer_phone}</p>
+        <p>
+          {order.customer_street_address}, {order.customer_postal_code} {order.customer_city}, {order.customer_country}
+        </p>
       </section>
     </div>
   );
 }
-
-export default Confirmation;

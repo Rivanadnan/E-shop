@@ -1,84 +1,109 @@
-import { useEffect, useState } from 'react';
+// src/pages/Search.tsx
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-const BACKEND_URL = 'https://ecommerce-api-new-coral.vercel.app';
+type SearchResultItem = {
+  title: string;
+  link: string;
+  snippet: string;
+};
 
-function ProductSearch() {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const limit = 10;
+type ApiResponse = {
+  items: SearchResultItem[];
+  totalResults: string;
+  currentPage: number;
+};
 
-  const fetchResults = async (page: number = 1) => {
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+export default function SearchPage() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResultItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = async () => {
+    if (!query) return;
+
+    setLoading(true);
     try {
-      const res = await fetch(
-        `${BACKEND_URL}/products/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
-      );
-      const data = await res.json();
-      setResults(data);
-      setCurrentPage(page);
-    } catch (error) {
-      console.error('Fel vid sökning:', error);
+      const { data } = await axios.get<ApiResponse>(`${backendUrl}/search`, {
+        params: { q: query, page },
+      });
+
+      setResults(data.items || []);
+      setTotalResults(parseInt(data.totalResults || "0"));
+    } catch (err) {
+      console.error("Search failed", err);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
-    if (query) fetchResults(1);
-  }, [query]);
+    if (query) {
+      handleSearch();
+    }
+  }, [page]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    handleSearch();
+  };
+
+  const totalPages = Math.ceil(totalResults / 10);
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h2>🔍 Sök efter produkter i vårt API</h2>
-      <div style={{ marginBottom: '1rem' }}>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Search Products</h1>
+      <form onSubmit={handleSubmit} className="mb-4">
         <input
           type="text"
           value={query}
-          placeholder="Sök efter produkt..."
           onChange={(e) => setQuery(e.target.value)}
-          style={{ padding: '0.5rem', marginRight: '0.5rem' }}
+          placeholder="Search..."
+          className="border p-2 rounded w-full max-w-md"
         />
-        <button onClick={() => fetchResults(1)}>Sök</button>
-      </div>
+        <button type="submit" className="mt-2 px-4 py-2 bg-blue-500 text-white rounded">
+          Search
+        </button>
+      </form>
 
-      {results.length > 0 ? (
+      {loading && <p>Loading...</p>}
+
+      {results.length > 0 && (
         <div>
-          {results.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                borderBottom: '1px solid #ccc',
-                marginBottom: '1rem',
-                paddingBottom: '1rem',
-              }}
-            >
-              <h3>{item.name}</h3>
-              <p>{item.description}</p>
-              <p><strong>Pris:</strong> {item.price} kr</p>
-              {item.image && (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  style={{ width: '120px', borderRadius: '5px' }}
-                />
-              )}
-            </div>
-          ))}
+          <p className="mb-2">Showing page {page} of {totalPages}</p>
+          <ul className="space-y-4">
+            {results.map((item, idx) => (
+              <li key={idx} className="border p-3 rounded">
+                <a href={item.link} className="text-blue-700 font-semibold" target="_blank" rel="noreferrer">
+                  {item.title}
+                </a>
+                <p>{item.snippet}</p>
+              </li>
+            ))}
+          </ul>
 
-          <div style={{ marginTop: '1rem' }}>
-            {currentPage > 1 && (
-              <button onClick={() => fetchResults(currentPage - 1)} style={{ marginRight: '1rem' }}>
-                ⬅ Föregående sida
-              </button>
-            )}
-            {results.length === limit && (
-              <button onClick={() => fetchResults(currentPage + 1)}>Nästa sida ➡</button>
-            )}
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages}
+              className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         </div>
-      ) : (
-        query && <p>🚫 Inga produkter hittades.</p>
       )}
     </div>
   );
 }
-
-export default ProductSearch;
