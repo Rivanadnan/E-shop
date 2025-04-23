@@ -22,7 +22,7 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`https://ecommerce-api-new.vercel.app/products?search=${searchTerm}`);
+      const response = await fetch(`https://ecommerce-api-new-coral.vercel.app/products?search=${searchTerm}`);
       const data = await response.json();
       console.log("data", data)
       setProducts(data);

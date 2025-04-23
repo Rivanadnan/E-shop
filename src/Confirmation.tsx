@@ -37,11 +37,11 @@ function Confirmation() {
     if (sessionId) {
       const fetchOrder = async () => {
         try {
-          const res = await fetch(`https://ecommerce-api-new-omega.vercel.app/orders/payment/${sessionId}`);
+          const res = await fetch(`https://ecommerce-api-new-coral.vercel.app/orders/payment/${sessionId}`);
           const data = await res.json();
           setOrder(data);
 
-          await fetch(`https://ecommerce-api-new-omega.vercel.app/orders/payment/${sessionId}`, {
+          await fetch(`https://ecommerce-api-new-coral.vercel.app/orders/payment/${sessionId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' }
           });

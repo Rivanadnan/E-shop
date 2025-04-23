@@ -24,7 +24,7 @@ function Register() {
     }
 
     try {
-      const res = await fetch('https://ecommerce-api-new.vercel.app/auth/register', {
+      const res = await fetch('https://ecommerce-api-new-coral.vercel.app/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
